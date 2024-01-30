@@ -38,7 +38,7 @@ class Sensor_fusion:
 
         min_l_xy = self.cor_lidar_cam(msg, self.gpx, self.gpy)
         print(min_l_xy)
-        self.publish_static_transform(min_l_xy, 'min_point', 'base_scan')
+        # self.publish_static_transform(min_l_xy, 'min_point', 'base_scan')
 
     def cor_lidar_cam(self, scan_msg, x, y):
         ranges = []
