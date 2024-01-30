@@ -20,6 +20,8 @@ class Sensor_fusion:
         self.max_angle = math.pi/2
         self.dis_obstracle = False
 
+        
+
     def gpxy_cb(self, msg):
         self.uid = msg.data[0]
         self.gpx = msg.data[1]
@@ -31,14 +33,16 @@ class Sensor_fusion:
         print("Received LIDAR data:")
         print("Ranges:", len(msg.ranges))
         print("Intensities:", len(msg.intensities))
-        self.is_obstacle_detected_  = self.is_obstacle_detected(msg)
+        # self.is_obstacle_detected_  = self.is_obstacle_detected(msg)
 
-        print("is_obstacle_detected_ -> ",self.is_obstacle_detected_)
+        # print("is_obstacle_detected_ -> ",self.is_obstacle_detected_)
 
 
         # min_l_xy = self.cor_lidar_cam(msg, self.gpx, self.gpy)
         # print(min_l_xy)
         # self.publish_static_transform(min_l_xy, 'min_point', 'laser_data_frame')
+
+        self.angle_to_index_find(msg, math.pi/3)
 
     def cor_lidar_cam(self, scan_msg, x, y):
         ranges = []
@@ -46,11 +50,9 @@ class Sensor_fusion:
         for i in range(len(scan_msg.ranges)):
             range_val = scan_msg.ranges[i]
             angle = scan_msg.angle_min + i * scan_msg.angle_increment
-            
-            if 1.0<range_val< 1.5:
-                l_y = range_val * math.sin(angle)
-                l_x = range_val * math.cos(angle)
-                self.publish_static_transform((l_x, l_y), 'min_point', 'laser_data_frame')
+
+            l_y = range_val * math.sin(angle)
+            l_x = range_val * math.cos(angle)
 
             if math.isfinite(l_y) and math.isfinite(l_x):
                 if self.range_min_th < range_val < self.range_max_th:
@@ -87,11 +89,32 @@ class Sensor_fusion:
         max_index = min(len(lidar_msg.ranges) - 1, math.ceil((self.max_angle - lidar_msg.angle_min) / lidar_msg.angle_increment))
 
         for i in range(min_index, max_index + 1):
+            range_val = lidar_msg.ranges[i]
+            angle = lidar_msg.angle_min + i * lidar_msg.angle_increment
+            
+            l_y = range_val * math.sin(angle)
+            l_x = range_val * math.cos(angle)
+
+            if 1.0<range_val <1.5:
+                self.publish_static_transform((l_x, l_y), 'min_point', 'laser_data_frame')
+
             if 1.0<lidar_msg.ranges[i] < 1.5:
                 return True  # Obstacle detected
 
         return False
     
+    def angle_to_index_find(self, scan_msg, angle):
+        idx = int((angle - scan_msg.angle_min)/(scan_msg.angle_increment))
+
+        range_val = scan_msg.ranges[idx]
+        angle = scan_msg.angle_min + idx * scan_msg.angle_increment
+
+        l_y = range_val * math.sin(angle)
+        l_x = range_val * math.cos(angle)
+
+        self.publish_static_transform((l_x, l_y), 'min_point', 'laser_data_frame')
+        print(idx, l_x, l_y)
+
 
 def main(args=None):
     rclpy.init(args=args)
