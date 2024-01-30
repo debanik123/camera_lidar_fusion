@@ -24,11 +24,12 @@ class Sensor_fusion:
         print("Ranges:", len(msg.ranges))
         print("Intensities:", len(msg.intensities))
 
-        relative_ranges = self.cor_lidar_cam(msg, self.gpx, self.gpy)
+        min_l_xy = self.cor_lidar_cam(msg, self.gpx, self.gpy)
     
 
     def cor_lidar_cam(self, scan_msg, x, y):
         ranges = []
+        l_xy = []
         for i in range(len(scan_msg.ranges)):
             range_val = scan_msg.ranges[i]
             angle = scan_msg.angle_min + i * scan_msg.angle_increment
@@ -37,13 +38,19 @@ class Sensor_fusion:
             l_x = range_val * math.cos(angle)
 
             if math.isfinite(l_y) and math.isfinite(l_x):
-                if 0.75 < range_val < 3.0:
+                if 0.5 < range_val < 3.0:
                     ranges.append(math.sqrt((l_x - x)**2 + (l_y - y)**2))
+                    l_xy.append((l_x, l_y))
                 else:
                     ranges.append(float('inf'))
+                    l_xy.append((float('inf'), float('inf')))
             else:
                 ranges.append(float('inf'))
-        return ranges
+                l_xy.append((float('inf'), float('inf')))
+
+        min_value, min_index = min((value, index) for index, value in enumerate(ranges))
+        min_l_xy = l_xy[min_index]
+        return min_l_xy
 
 
 def main(args=None):
