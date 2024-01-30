@@ -42,7 +42,8 @@ class Sensor_fusion:
         # print(min_l_xy)
         # self.publish_static_transform(min_l_xy, 'min_point', 'laser_data_frame')
 
-        self.angle_to_index_find(msg, math.pi/3)
+        self.angle_to_index_find(msg, 130, 'p_130_angle')
+        self.angle_to_index_find(msg, -130, 'n_130_angle')
 
     def cor_lidar_cam(self, scan_msg, x, y):
         ranges = []
@@ -84,7 +85,7 @@ class Sensor_fusion:
 
         self.tf_broadcaster.sendTransform([static_transformStamped])
     
-    def is_obstacle_detected(self, lidar_msg):
+    def is_obstacle_detected(self, lidar_msg, child_frame):
         min_index = max(0, math.floor((self.min_angle - lidar_msg.angle_min) / lidar_msg.angle_increment))
         max_index = min(len(lidar_msg.ranges) - 1, math.ceil((self.max_angle - lidar_msg.angle_min) / lidar_msg.angle_increment))
 
@@ -96,14 +97,15 @@ class Sensor_fusion:
             l_x = range_val * math.cos(angle)
 
             if 1.0<range_val <1.5:
-                self.publish_static_transform((l_x, l_y), 'min_point', 'laser_data_frame')
+                self.publish_static_transform((l_x, l_y), child_frame, 'laser_data_frame')
 
             if 1.0<lidar_msg.ranges[i] < 1.5:
                 return True  # Obstacle detected
 
         return False
     
-    def angle_to_index_find(self, scan_msg, angle):
+    def angle_to_index_find(self, scan_msg, angle, child_frame):
+        angle = angle*(math.pi/180)
         idx = int((angle - scan_msg.angle_min)/(scan_msg.angle_increment))
 
         range_val = scan_msg.ranges[idx]
@@ -112,7 +114,7 @@ class Sensor_fusion:
         l_y = range_val * math.sin(angle)
         l_x = range_val * math.cos(angle)
 
-        self.publish_static_transform((l_x, l_y), 'min_point', 'laser_data_frame')
+        self.publish_static_transform((l_x, l_y), child_frame, 'laser_data_frame')
         print(idx, l_x, l_y)
 
 
