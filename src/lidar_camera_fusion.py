@@ -25,6 +25,7 @@ class Sensor_fusion:
         print("Intensities:", len(msg.intensities))
 
         min_l_xy = self.cor_lidar_cam(msg, self.gpx, self.gpy)
+        print(min_l_xy)
     
 
     def cor_lidar_cam(self, scan_msg, x, y):
