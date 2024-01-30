@@ -39,7 +39,7 @@ class Sensor_fusion:
             l_x = range_val * math.cos(angle)
 
             if math.isfinite(l_y) and math.isfinite(l_x):
-                if 0.5 < range_val < 3.0:
+                if 1.0 < range_val < 3.0:
                     ranges.append(math.sqrt((l_x - x)**2 + (l_y - y)**2))
                     l_xy.append((l_x, l_y))
                 else:
