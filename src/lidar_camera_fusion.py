@@ -16,7 +16,9 @@ class Sensor_fusion:
         self.tf_broadcaster = tf2_ros.StaticTransformBroadcaster(self.node)
         self.range_min_th  = 0.75
         self.range_max_th = 3.0
-
+        self.min_angle = -math.pi/2
+        self.max_angle = math.pi/2
+        self.dis_obstracle = False
 
     def gpxy_cb(self, msg):
         self.uid = msg.data[0]
@@ -29,6 +31,10 @@ class Sensor_fusion:
         print("Received LIDAR data:")
         print("Ranges:", len(msg.ranges))
         print("Intensities:", len(msg.intensities))
+        self.is_obstacle_detected_  = self.is_obstacle_detected(msg)
+
+        print("is_obstacle_detected_ -> ",self.is_obstacle_detected_)
+
 
         min_l_xy = self.cor_lidar_cam(msg, self.gpx, self.gpy)
         print(min_l_xy)
@@ -73,6 +79,17 @@ class Sensor_fusion:
         static_transformStamped.transform.rotation.w = 1.0
 
         self.tf_broadcaster.sendTransform([static_transformStamped])
+    
+    def is_obstacle_detected(self, lidar_msg):
+        min_index = max(0, math.floor((self.min_angle - lidar_msg.angle_min) / lidar_msg.angle_increment))
+        max_index = min(len(lidar_msg.ranges) - 1, math.ceil((self.max_angle - lidar_msg.angle_min) / lidar_msg.angle_increment))
+
+        for i in range(min_index, max_index + 1):
+            if 1.0<lidar_msg.ranges[i] < 1.5:
+                return True  # Obstacle detected
+
+        return False
+    
 
 def main(args=None):
     rclpy.init(args=args)
