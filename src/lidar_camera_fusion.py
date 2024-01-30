@@ -2,6 +2,8 @@ import math
 import rclpy
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Float32
+import tf2_ros
+from geometry_msgs.msg import TransformStamped
 
 class Sensor_fusion:
     def __init__(self):
@@ -11,7 +13,11 @@ class Sensor_fusion:
         self.uid = 9000
         self.gpx = 0.0
         self.gpy = 0.0
-    
+        self.tf_broadcaster = tf2_ros.StaticTransformBroadcaster(self.node)
+        self.range_min_th  = 0.75
+        self.range_max_th = 3.0
+
+
     def gpxy_cb(self, msg):
         self.uid = msg.data[0]
         self.gpx = msg.data[1]
@@ -26,7 +32,7 @@ class Sensor_fusion:
 
         min_l_xy = self.cor_lidar_cam(msg, self.gpx, self.gpy)
         print(min_l_xy)
-    
+        self.publish_static_transform(min_l_xy, 'min_point', 'base_scan')
 
     def cor_lidar_cam(self, scan_msg, x, y):
         ranges = []
@@ -39,7 +45,7 @@ class Sensor_fusion:
             l_x = range_val * math.cos(angle)
 
             if math.isfinite(l_y) and math.isfinite(l_x):
-                if 1.0 < range_val < 3.0:
+                if self.range_min_th < range_val < self.range_max_th:
                     ranges.append(math.sqrt((l_x - x)**2 + (l_y - y)**2))
                     l_xy.append((l_x, l_y))
                 else:
@@ -52,7 +58,21 @@ class Sensor_fusion:
         min_value, min_index = min((value, index) for index, value in enumerate(ranges))
         min_l_xy = l_xy[min_index]
         return min_l_xy
+    
+    def publish_static_transform(self, min_l_xy, child_frame, parent_frame):
+        static_transformStamped = TransformStamped()
+        static_transformStamped.header.stamp = self.node.get_clock().now().to_msg()
+        static_transformStamped.header.frame_id = parent_frame # Replace with your lidar frame_id
+        static_transformStamped.child_frame_id = child_frame
+        static_transformStamped.transform.translation.x = min_l_xy[0]
+        static_transformStamped.transform.translation.y = min_l_xy[1]
+        static_transformStamped.transform.translation.z = 0.0
+        static_transformStamped.transform.rotation.x = 0.0
+        static_transformStamped.transform.rotation.y = 0.0
+        static_transformStamped.transform.rotation.z = 0.0
+        static_transformStamped.transform.rotation.w = 1.0
 
+        self.tf_broadcaster.sendTransform([static_transformStamped])
 
 def main(args=None):
     rclpy.init(args=args)
