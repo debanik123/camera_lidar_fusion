@@ -19,7 +19,7 @@ class Sensor_fusion:
         self.min_angle = -math.pi/2
         self.max_angle = math.pi/2
         self.dis_obstracle = False
-        self.obstracle_th = 1.0
+        self.obstracle_th = 0.7
         
 
     def gpxy_cb(self, msg):
