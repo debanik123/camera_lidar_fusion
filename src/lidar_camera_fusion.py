@@ -98,8 +98,10 @@ class Sensor_fusion:
         self.tf_broadcaster.sendTransform([static_transformStamped])
     
     def is_obstacle_detected(self, scan_msg, min_angle, max_angle):
-        self.angle_to_index_find(scan_msg, min_angle, 'p_min_angle_angle')
-        self.angle_to_index_find(scan_msg, max_angle, 'p_max_angle_angle')
+        (idx, l_x, l_y, range_val) = self.angle_to_index_find(scan_msg, min_angle, 'p_min_angle_angle')
+        self.publish_static_transform((l_x, l_y), 'p_min_angle_angle', 'laser_data_frame')
+        (idx, l_x, l_y, range_val) = self.angle_to_index_find(scan_msg, max_angle, 'p_max_angle_angle')
+        self.publish_static_transform((l_x, l_y), 'p_max_angle_angle', 'laser_data_frame')
         
         for angle in range(min_angle, max_angle):
             (idx, l_x, l_y, range_val) = self.angle_to_index_find(scan_msg, angle, 'obstracle')
