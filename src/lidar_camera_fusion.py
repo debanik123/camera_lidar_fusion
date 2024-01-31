@@ -102,10 +102,12 @@ class Sensor_fusion:
         self.angle_to_index_find(scan_msg, max_angle, 'p_max_angle_angle')
         
         for angle in range(min_angle, max_angle):
-            (idx, range_val) = self.angle_to_index_find(scan_msg, angle, 'obstracle')
+            (idx, l_x, l_y, range_val) = self.angle_to_index_find(scan_msg, angle, 'obstracle')
             if range_val>0.2:
                 if (range_val< self.obstracle_th):
+                    self.publish_static_transform((l_x, l_y), 'obstracle', 'laser_data_frame')
                     return True
+                    
             else:
                 False
         return False
@@ -122,9 +124,9 @@ class Sensor_fusion:
         l_y = range_val * math.sin(angle)
         l_x = range_val * math.cos(angle)
 
-        self.publish_static_transform((l_x, l_y), child_frame, 'laser_data_frame')
+        # self.publish_static_transform((l_x, l_y), child_frame, 'laser_data_frame')
         # print(idx, l_x, l_y)
-        return (idx, range_val)
+        return (idx, l_x, l_y, range_val)
 
 
 def main(args=None):
