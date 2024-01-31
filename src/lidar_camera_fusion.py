@@ -4,12 +4,14 @@ from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Float32
 import tf2_ros
 from geometry_msgs.msg import TransformStamped
+from std_msgs.msg import Bool
 
 class Sensor_fusion:
     def __init__(self):
         self.node = rclpy.create_node('sensor_fusion')
         self.lidar_sub = self.node.create_subscription(LaserScan, '/scan', self.lidar_cb, 10)
         self.gpxy_sub = self.node.create_subscription(Float32, '/gpxy', self.gpxy_cb, 10)
+        self.obstacle_pub = self.node.create_publisher(Bool, '/obstacle_detected', 10)
         self.uid = 9000
         self.gpx = 0.0
         self.gpy = 0.0
