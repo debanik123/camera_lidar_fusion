@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import math
 import rclpy
 from sensor_msgs.msg import LaserScan
@@ -136,6 +137,8 @@ class Sensor_fusion:
         msg = Bool()
         msg.data = obstacle_detected
         self.obstacle_pub.publish(msg)
+
+
 
 def main(args=None):
     rclpy.init(args=args)
