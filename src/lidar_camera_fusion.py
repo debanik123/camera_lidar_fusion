@@ -51,9 +51,10 @@ class Sensor_fusion:
         # for angle in range(100, 260):
         #     (idx, range_val) = self.angle_to_index_find(msg, angle, 'obstracle')
 
-        is_obstracle = self.is_obstacle_detected(msg, 100, 260)
+        is_obstracle = self.is_obstacle_detected(msg, 130, 260)
         print("is_obstracle --> ", is_obstracle)
 
+        self.publish_obstacle_detection(is_obstracle)
 
 
 
@@ -111,9 +112,7 @@ class Sensor_fusion:
                 if (range_val< self.obstracle_th):
                     self.publish_static_transform((l_x, l_y), 'obstracle', 'laser_data_frame')
                     return True
-                    
-            else:
-                False
+        
         return False
             
 
@@ -131,7 +130,12 @@ class Sensor_fusion:
         # self.publish_static_transform((l_x, l_y), child_frame, 'laser_data_frame')
         # print(idx, l_x, l_y)
         return (idx, l_x, l_y, range_val)
-
+    
+    def publish_obstacle_detection(self, obstacle_detected):
+        # Publish the obstacle detection status
+        msg = Bool()
+        msg.data = obstacle_detected
+        self.obstacle_pub.publish(msg)
 
 def main(args=None):
     rclpy.init(args=args)
